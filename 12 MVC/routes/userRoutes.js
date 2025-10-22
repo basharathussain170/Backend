@@ -3,6 +3,7 @@ const express=require('express');
 const router=express.Router();
 
 //local mdoule
+const User=require('../models/Users')
 const userController=require('../controllers/userController')
 const verifyToken=require('../middleware/authMiddleware')
 
@@ -15,6 +16,11 @@ router.get("/profile",verifyToken,(req,res)=>{
 router.post('/refresh',userController.takeRefreshToken)
 
 router.post('/logout',userController.logout)
+
+router.get("/all-users",verifyToken,userController.isAdmin,async(req,res)=>{
+  const allUsers=await User.find()
+  res.json(allUsers);
+})
 
 
 

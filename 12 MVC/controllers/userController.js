@@ -55,15 +55,21 @@ exports.takeRefreshToken = async (req, res) => {
   const refreshToken = req.body.token;
   if (!refreshToken) return res.status(404).send("Refresh Token missing!");
   try {
-    const savedRefreshToken=await RefreshToken.findOne({token:refreshToken});
-    if(!savedRefreshToken)return res.status(404).send("Ref token not valid")
+    const savedRefreshToken = await RefreshToken.findOne({
+      token: refreshToken,
+    });
+    if (!savedRefreshToken) return res.status(404).send("Ref token not valid");
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err, user) => {
       if (err) return res.status(404).send("Refresh Token Missing");
-      const newAccessToken = jwt.sign({userId:user.userId}, process.env.ACCESS_TOKEN, {
-        expiresIn: "1m",
-      });
-      req.user=user
+      const newAccessToken = jwt.sign(
+        { userId: user.userId },
+        process.env.ACCESS_TOKEN,
+        {
+          expiresIn: "1m",
+        }
+      );
+      req.user = user;
       res.json({ accessToken: newAccessToken });
     });
   } catch (err) {
@@ -71,8 +77,14 @@ exports.takeRefreshToken = async (req, res) => {
   }
 };
 
-exports.logout=async(req,res)=>{
-  const token=req.body.token;
-  await RefreshToken.findOneAndDelete({token});
-  res.send("Logged out successfully and refresh token deleted!")
-}
+exports.logout = async (req, res) => {
+  const token = req.body.token;
+  await RefreshToken.findOneAndDelete({ token });
+  res.send("Logged out successfully");
+};
+
+exports.isAdmin = (req, res, next) => {
+  if (req.user.role !== "admin")
+    return res.status(404).send("Access denied. Admin only!");
+  next();
+};
